@@ -1,0 +1,4 @@
+bin/*                             srv/docker/linuxmuster-mail/
+debian/linuxmuster-mail.service   etc/systemd/system/
+sbin/*		                        usr/sbin/
+share/*		                        usr/share/linuxmuster-mail/

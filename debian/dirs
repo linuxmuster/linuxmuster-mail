@@ -1,0 +1,7 @@
+srv/docker/linuxmuster-mail/config/dovecot
+srv/docker/linuxmuster-mail/config/ldap
+srv/docker/linuxmuster-mail/config/postfix
+srv/docker/linuxmuster-mail/config/saslauthd
+srv/docker/linuxmuster-mail/maildata
+srv/docker/linuxmuster-mail/mailstate
+usr/share/linuxmuster-mail/templates

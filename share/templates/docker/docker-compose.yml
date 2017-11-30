@@ -1,0 +1,59 @@
+# /srv/docker/linuxmuster-mail/docker-compose.yml
+#
+# thomas@linuxmuster.net
+# 20171117
+
+version: '2'
+
+services:
+  mail:
+    image: tvial/docker-mailserver:latest
+    hostname: mail
+    domainname: @@domainname@@
+    container_name: mail
+    ports:
+    - "25:25"
+    - "143:143"
+    - "587:587"
+    - "993:993"
+    volumes:
+    - ./maildata/@@domainname@@/:/home/@@domainname@@/
+    - ./mailstate/:/var/mail-state/
+    - ./config/:/tmp/docker-mailserver/
+    - ./config/ldap/ldap.conf:/etc/ldap/ldap.conf:ro
+    - ./config/dovecot/dovecot-ldap.conf.ext:/etc/dovecot/dovecot-ldap.conf.ext:ro
+    - ./config/postfix/ldap-users.cf:/etc/postfix/ldap-users.cf:ro
+    - ./config/postfix/ldap-groups.cf:/etc/postfix/ldap-groups.cf:ro
+    - ./config/postfix/ldap-aliases.cf:/etc/postfix/ldap-aliases.cf:ro
+    - ./config/saslauthd/saslauthd.conf:/etc/saslauthd.conf:ro
+    - /etc/linuxmuster/ssl:/tmp/ssl:ro
+    - /etc/linuxmuster/ssl/cacert.pem:/etc/ssl/certs/cacert.pem:ro
+    environment:
+    - ENABLE_SPAMASSASSIN=0
+    - ENABLE_CLAMAV=0
+    - ENABLE_FAIL2BAN=0
+    - ENABLE_POSTGREY=0
+    - ONE_DIR=1
+    - DMS_DEBUG=0
+    - ENABLE_LDAP=1
+    - LDAP_SERVER_HOST=@@serverip@@
+    - LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
+    - LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
+    - LDAP_BIND_PW=@@binduserpw@@
+    - DOVECOT_PASS_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
+    - DOVECOT_USER_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
+    - ENABLE_SASLAUTHD=1
+    - SASLAUTHD_MECHANISMS=ldap
+    - SASLAUTHD_LDAP_SERVER=@@serverip@@
+    - SASLAUTHD_LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
+    - SASLAUTHD_LDAP_PASSWORD=@@binduserpw@@
+    - SASLAUTHD_LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
+    - SASLAUTHD_LDAP_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
+    - POSTMASTER_ADDRESS=postmaster@@@domainname@@
+    - SSL_TYPE=manual
+    - SSL_CERT_PATH=/tmp/ssl/mail.cert.pem
+    - SSL_KEY_PATH=/tmp/ssl/mail.key.pem
+    - AWS_SES_HOST=@@smtprelay@@
+    - AWS_SES_USERPASS=@@smtpauth@@
+    cap_add:
+    - NET_ADMIN

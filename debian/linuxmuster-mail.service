@@ -1,0 +1,14 @@
+[Unit]
+Description=linuxmuster mailserver docker container
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/srv/docker/linuxmuster-mail/start.sh
+ExecStop=/srv/docker/linuxmuster-mail/stop.sh
+
+[Install]
+WantedBy=multi-user.target
+Alias=mail.service
