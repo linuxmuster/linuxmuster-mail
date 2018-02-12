@@ -1,3 +1,9 @@
+linuxmuster-mail (0.2.0-0ubuntu0) lmn7-testing; urgency=low
+
+  * removed network setup.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 09 Feb 2018 18:36:21 +0100
+
 linuxmuster-mail (0.1.0-0ubuntu0) lmn7-testing; urgency=low
 
   * initial release.
