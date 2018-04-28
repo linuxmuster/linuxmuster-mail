@@ -70,8 +70,8 @@ install: build
 	# Add here commands to install the package.
 	dh_install
 	# remove unnecessary dirs
-	rm -rf `find debian/linuxmuster-mail7 -name .svn`
-	rm -f `find debian/linuxmuster-mail7 -name .directory`
+	rm -rf `find debian/linuxmuster-mail -name .svn`
+	rm -f `find debian/linuxmuster-mail -name .directory`
 
 # Build architecture-independent files here.
 # Pass -i to all debhelper commands in this target to reduce clutter.
