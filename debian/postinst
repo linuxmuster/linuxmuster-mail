@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 20171122
+# 20181124
 # GPL v3
 #
 
@@ -48,6 +48,20 @@ case "$1" in
   chmod 775 "$MAILSTATE"
   chmod 775 "$MAILDATA"
 
+  # manage pinned version
+  conf="/srv/docker/linuxmuster-mail/docker-compose.yml"
+  if [ -s "$conf" ]; then
+    template="/usr/share/linuxmuster-mail/templates/docker/docker-compose.yml"
+    new_version="$(grep image: "$template" | awk -F: '{ print $3 }')"
+    current_version="$(grep image: "$conf" | awk -F: '{ print $3 }')"
+    if [ "$new_version" != "$current_version" ]; then
+      echo "Changing version to $new_version."
+      image="tvial/docker-mailserver:$new_version"
+      cp "$conf" "$conf.bak"
+      sed -e "s|image: .*|image: $image|" "$conf.bak" > "$conf"
+      systemctl restart linuxmuster-mail.service
+    fi
+  fi
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
