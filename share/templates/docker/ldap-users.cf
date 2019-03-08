@@ -9,5 +9,5 @@ bind_pw = @@binduserpw@@
 query_filter = (samaccountname=%s)
 result_attribute = samaccountname
 search_base = OU=SCHOOLS,@@basedn@@
-server_host = @@serverip@@
+server_host = ldaps://@@serverip@@:636
 version = 3

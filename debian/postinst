@@ -34,10 +34,10 @@ case "$1" in
  configure)
 
   # create docker group & user
-  grep -q ^docker /etc/group || groupadd -g 5000 docker
-  grep ^docker /etc/group | grep -q 5000 || groupmod -g 5000 docker
-  grep -q ^docker /etc/passwd || useradd -u 5000 -d /srv/docker -g docker docker
-  grep ^docker /etc/passwd | grep -q 5000 || usermod -u 5000 -d /srv/docker -g docker docker
+  grep -q ^docker: /etc/group || groupadd -g 5000 docker
+  grep ^docker: /etc/group | grep -q 5000 || groupmod -g 5000 docker
+  grep -q ^docker: /etc/passwd || useradd -u 5000 -d /srv/docker -g docker docker
+  grep ^docker: /etc/passwd | grep -q 5000 || usermod -u 5000 -d /srv/docker -g docker docker
 
   # permissions
   mkdir -p "$SSLDIR"
