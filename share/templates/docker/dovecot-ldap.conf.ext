@@ -8,7 +8,7 @@ default_pass_scheme = SSHA
 dn = CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
 dnpass = @@binduserpw@@
 auth_bind = yes
-hosts = @@serverip@@
+uris = ldaps://@@serverip@@:636
 ldap_version = 3
 pass_attrs = sAMAccountname=user,userPassword=password
 pass_filter = "(&(objectclass=person)(sAMAccountName=%n))"
