@@ -1,3 +1,9 @@
+linuxmuster-mail (0.4.0-0ubuntu0) lmn7-testing; urgency=low
+
+  * merged #5 from ironiemix:master, should fix #3 & #4.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 12 Mar 2019 09:21:19 +0100
+
 linuxmuster-mail (0.3.0-0ubuntu0) lmn7-testing; urgency=low
 
   * pinned image to tag release-v6.1.0 (#1).
