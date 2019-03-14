@@ -1,8 +1,9 @@
 linuxmuster-mail (0.4.1-0ubuntu0) lmn7-testing; urgency=low
 
   * changed serverip to fqdn of server in all config templates.
+  * added servername patching to linuxmuster-mail.py.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 12 Mar 2019 09:21:19 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Mar 2019 18:39:25 +0100
 
 linuxmuster-mail (0.4.0-0ubuntu0) lmn7-testing; urgency=low
 

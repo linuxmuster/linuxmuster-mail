@@ -2,7 +2,7 @@
 #
 # linuxmuster-mail.py
 # thomas@linuxmuster.net
-# 20180209
+# 20190314
 #
 
 import configparser
@@ -112,6 +112,7 @@ def mailSetup():
         setup.read(config)
         domainname = setup.get('setup', 'domainname')
         serverip = setup.get('setup', 'serverip')
+        servername = setup.get('setup', 'servername')
         firewallip = setup.get('setup', 'firewallip')
         mailip = setup.get('setup', 'mailip')
         binduserpw = setup.get('setup', 'binduserpw')
@@ -145,6 +146,7 @@ def mailSetup():
         firstline = re.findall(r'# .*\n', content)[0]
         outfile = firstline.partition(' ')[2].replace('\n', '')
         # replace placeholders
+        content = content.replace('@@servername@@', servername)
         content = content.replace('@@serverip@@', serverip)
         content = content.replace('@@basedn@@', basedn)
         content = content.replace('@@binduserpw@@', binduserpw)
