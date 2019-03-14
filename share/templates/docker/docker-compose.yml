@@ -1,7 +1,7 @@
 # /srv/docker/linuxmuster-mail/docker-compose.yml
 #
 # thomas@linuxmuster.net
-# 20181124
+# 20190314
 
 version: '2'
 
@@ -36,7 +36,7 @@ services:
     - ONE_DIR=1
     - DMS_DEBUG=0
     - ENABLE_LDAP=1
-    - LDAP_SERVER_HOST=@@serverip@@
+    - LDAP_SERVER_HOST=@@servername@@.@@domainname@@
     - LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
     - LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
     - LDAP_BIND_PW=@@binduserpw@@
@@ -44,7 +44,7 @@ services:
     - DOVECOT_USER_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
     - ENABLE_SASLAUTHD=1
     - SASLAUTHD_MECHANISMS=ldap
-    - SASLAUTHD_LDAP_SERVER=@@serverip@@
+    - SASLAUTHD_LDAP_SERVER=@@servername@@.@@domainname@@
     - SASLAUTHD_LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
     - SASLAUTHD_LDAP_PASSWORD=@@binduserpw@@
     - SASLAUTHD_LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@

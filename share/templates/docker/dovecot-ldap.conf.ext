@@ -1,14 +1,14 @@
 # /srv/docker/linuxmuster-mail/config/dovecot/dovecot-ldap.conf.ext
 #
 # thomas@linuxmuster.net
-# 20171115
+# 20190314
 
 base = OU=SCHOOLS,@@basedn@@
 default_pass_scheme = SSHA
 dn = CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
 dnpass = @@binduserpw@@
 auth_bind = yes
-uris = ldaps://@@serverip@@:636
+uris = ldaps://@@servername@@.@@domainname@@:636
 ldap_version = 3
 pass_attrs = sAMAccountname=user,userPassword=password
 pass_filter = "(&(objectclass=person)(sAMAccountName=%n))"

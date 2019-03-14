@@ -1,7 +1,7 @@
 # /srv/docker/linuxmuster-mail/config/postfix/ldap-users.cf
 #
 # thomas@linuxmuster.net
-# 20171115
+# 20190314
 
 bind = yes
 bind_dn = CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
@@ -9,5 +9,5 @@ bind_pw = @@binduserpw@@
 query_filter = (samaccountname=%s)
 result_attribute = samaccountname
 search_base = OU=SCHOOLS,@@basedn@@
-server_host = ldaps://@@serverip@@:636
+server_host = ldaps://@@servername@@.@@domainname@@:636
 version = 3
