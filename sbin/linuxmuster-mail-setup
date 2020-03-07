@@ -2,7 +2,7 @@
 #
 # linuxmuster-mail.py
 # thomas@linuxmuster.net
-# 20190314
+# 20200306
 #
 
 import configparser
@@ -12,76 +12,86 @@ import os
 import sys
 import re
 
+
 def usage():
     print('Usage: linuxmuster-mail.py [options]')
     print(' [options] may be:')
-    print(' -c <file>, --config=<file> : path to ini file with setup values (mandatory with -s)')
-    print(' -r,        --reboot        : reboot system after setup')
-    print(' -h,        --help          : print this help')
+    print(' -c <file>,   --config=<file>  : path to ini file with setup values (default: /var/lib/linuxmuster/setup.ini)')
+    print(' -f,          --force          : force overwrite an already configured container')
+    print(" -b <secret>, --bindpw=<secret>: global-binduser's password (optional, per default read from setup.ini)")
+    print(' -h,          --help           : print this help')
+
 
 # get cli args
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "c:hr", ["config=", "help", "reboot"])
+    opts, args = getopt.getopt(sys.argv[1:], "b:c:fh", ["bindpw=", "config=", "force", "help"])
 except getopt.GetoptError as err:
-    # print help information and exit:
-    print(err) # will print something like "option -a not recognized"
+    # will print something like "option -a not recognized"
+    print(err)
     usage()
     sys.exit(2)
 
+
 # default values
-reboot = False
-config = None
+tpldir = '/usr/share/linuxmuster-mail/templates/docker'
+dockerdir = '/srv/docker/linuxmuster-mail/'
+setupini = '/var/lib/linuxmuster/setup.ini'
+ssldir = '/etc/linuxmuster/ssl'
+mailcert = ssldir + '/mail.cert.pem'
+mailkey = ssldir + '/mail.key.pem'
+force = False
+binduserpw_cl = ''
+
 
 # evaluate options
 for o, a in opts:
-    if o in ("-r", "--reboot"):
-        reboot = True
-    elif o in ("-c", "--config"):
+    if o in ("-c", "--config"):
         if os.path.isfile(a):
-            config = a
+            setupini = a
         else:
             usage()
             sys.exit()
+    elif o in ("-f", "--force"):
+        force = True
+    elif o in ("-b", "--bindpw"):
+        binduserpw_cl = a
     elif o in ("-h", "--help"):
         usage()
         sys.exit()
     else:
         assert False, "unhandled option"
-if (config == None):
-    usage()
-    sys.exit()
 
-# certificate
-mailkey = '/etc/linuxmuster/ssl/mail.key.pem'
-# template dirs
-tpldir = '/usr/share/linuxmuster-mail/templates'
-dockertpldir = tpldir + '/docker'
-# docker
-dockerdir = '/srv/docker/linuxmuster-mail/'
-dockerimage = 'tvial/docker-mailserver:latest'
 
-## functions start
+# check if linuxmuster-mail container is already configured
+if force is False and os.path.isfile(dockerdir + 'docker-compose.yml'):
+    print('The linuxmuster-mail docker container is already configured. Exiting.')
+    sys.exit(0)
 
+
+# functions start
 # print without linefeed
 def printr(msg):
     print(msg, end='', flush=True)
 
+
 # return datetime string
 def dtStr():
     return "{:%Y%m%d%H%M%S}".format(datetime.datetime.now())
+
 
 # return content of text file
 def readTextfile(tfile):
     if not os.path.isfile(tfile):
         return False, None
     try:
-        infile = open(tfile , 'r')
+        infile = open(tfile, 'r')
         content = infile.read()
         infile.close()
         return True, content
     except:
         print('Cannot read ' + tfile + '!')
         return False, None
+
 
 # write textfile
 def writeTextfile(tfile, content, flag):
@@ -94,39 +104,51 @@ def writeTextfile(tfile, content, flag):
         print('Failed to write ' + tfile + '!')
         return False
 
+
 # mailserver setup
 def mailSetup():
     # read ini file
     print('### linuxmuster-mail: mailserver setup')
-    if not os.path.isfile(mailkey):
-        print('Certificate file ' + mailkey + ' is missing!')
-        return 1
-    else:
-        print('Certificate file ' + mailkey + ' found!')
-    # permissions
-    os.system('chgrp docker ' + mailkey)
-    os.system('chmod 640 ' + mailkey)
     try:
         print('Reading setup data ...')
         setup = configparser.ConfigParser(inline_comment_prefixes=('#', ';'))
-        setup.read(config)
+        setup.read(setupini)
         domainname = setup.get('setup', 'domainname')
         serverip = setup.get('setup', 'serverip')
         servername = setup.get('setup', 'servername')
-        firewallip = setup.get('setup', 'firewallip')
-        mailip = setup.get('setup', 'mailip')
         binduserpw = setup.get('setup', 'binduserpw')
         basedn = setup.get('setup', 'basedn')
-        smtprelay = setup.get('setup', 'smtprelay')
+        smtprelay_full = setup.get('setup', 'smtprelay')
         smtpuser = setup.get('setup', 'smtpuser')
         smtppw = setup.get('setup', 'smtppw')
-        smtpauth = smtpuser + ':' + smtppw
-        if smtpuser == '' or smtppw == '':
-            smtpauth = ''
-        else:
-            smtpauth = smtpuser + ':' + smtppw
     except:
         return 1
+
+    # use binduser password given on cl
+    if binduserpw_cl != '':
+        binduserpw = binduserpw_cl
+    # try to get the password assuming we are on the server
+    if binduserpw == '':
+        try:
+            rc, binduserpw = readTextfile('/etc/linuxmuster/.secret/global-binduser')
+        except:
+            print('No binduser password!')
+            usage()
+            return 1
+
+    # split relay name and port
+    smtprelay = smtprelay_full.split(':')[0]
+    try:
+        smtpport = smtprelay_full.split(':')[1]
+    except:
+        smtpport = '25'
+
+    # check certificate & key
+    for item in [mailkey, mailcert]:
+        if not os.path.isfile(item):
+            print('Certificate file ' + item + ' is missing!')
+            return 1
+
     # create maildata dir
     maildata = dockerdir + '/maildata/' + domainname
     os.system('mkdir -p ' + maildata)
@@ -134,10 +156,11 @@ def mailSetup():
     rc = os.system('chmod 770 ' + maildata)
     if rc != 0:
         return 1
+
     # create docker configuration
     print('Writing docker configuration ...')
-    for f in os.listdir(dockertpldir):
-        infile = dockertpldir + '/' + f
+    for f in os.listdir(tpldir):
+        infile = tpldir + '/' + f
         # read template
         rc, content = readTextfile(infile)
         if not rc:
@@ -152,9 +175,13 @@ def mailSetup():
         content = content.replace('@@binduserpw@@', binduserpw)
         content = content.replace('@@domainname@@', domainname)
         content = content.replace('@@smtprelay@@', smtprelay)
-        content = content.replace('@@smtpauth@@', smtpauth)
+        content = content.replace('@@smtpport@@', smtpport)
+        content = content.replace('@@smtpuser@@', smtpuser)
+        content = content.replace('@@smtppw@@', smtppw)
+        content = content.replace('@@mailcert@@', mailcert)
+        content = content.replace('@@mailkey@@', mailkey)
         # add date string to content
-        content = '# modified by linuxmuster-mail at ' + dtStr() + '\n' + content
+        content = '# modified by linuxmuster-mail-setup at ' + dtStr() + '\n' + content
         # write outfile
         if not writeTextfile(outfile, content, 'w'):
             return 1
@@ -166,29 +193,19 @@ def mailSetup():
             outfile = outfile.replace('ldap-groups.cf', 'ldap-aliases.cf')
             if not writeTextfile(outfile, content, 'w'):
                 return 1
-    # pull docker image
-    rc = os.system('docker pull ' + dockerimage)
-    if rc != 0:
-        return 1
-    # finally enable the service
-    rc = os.system('systemctl enable linuxmuster-mail.service')
-    if rc != 0:
-        return 1
-    return 0
+            outfile = outfile.replace('ldap-aliases.cf', 'ldap-domains.cf')
+            if not writeTextfile(outfile, content, 'w'):
+                return 1
+    # restart container
+    rc = os.system('docker-compose ps | grep -qw ^mail && ' + dockerdir + 'stop.sh')
+    rc = os.system(dockerdir + 'start.sh')
 
-## functions end
+    return rc
+# functions end
 
 
 rc = mailSetup()
 
-if rc == 0:
-    print('\nScript finished successfully!')
-    if reboot == True:
-        print('Rebooting ...')
-        os.system('/sbin/reboot')
-    else:
-        print('Note: You have to reboot the system to make the changes effective.')
-else:
-    print('\nScript finished with error!')
+print('Script finished with return code ' + str(rc) + '.')
 
 sys.exit(rc)

@@ -1,7 +1,8 @@
 # /srv/docker/linuxmuster-mail/config/dovecot/dovecot-ldap.conf.ext
 #
 # thomas@linuxmuster.net
-# 20190314
+# 20200303
+#
 
 base = OU=SCHOOLS,@@basedn@@
 default_pass_scheme = SSHA

@@ -1,59 +1,72 @@
 # /srv/docker/linuxmuster-mail/docker-compose.yml
 #
 # thomas@linuxmuster.net
-# 20190314
+# 20200306
+#
 
-version: '2'
+version: '3'
 
 services:
   mail:
-    image: tvial/docker-mailserver:release-v6.1.0
+    image: tvial/docker-mailserver:stable
     hostname: mail
     domainname: @@domainname@@
     container_name: mail
+    restart: always
     ports:
-    - "25:25"
-    - "143:143"
-    - "587:587"
-    - "993:993"
+      - "25:25"
+      - "143:143"
+      - "587:587"
+      - "993:993"
+      - "4190:4190"
     volumes:
-    - ./maildata/@@domainname@@/:/home/@@domainname@@/
-    - ./mailstate/:/var/mail-state/
-    - ./config/:/tmp/docker-mailserver/
-    - ./config/ldap/ldap.conf:/etc/ldap/ldap.conf:ro
-    - ./config/dovecot/dovecot-ldap.conf.ext:/etc/dovecot/dovecot-ldap.conf.ext:ro
-    - ./config/postfix/ldap-users.cf:/etc/postfix/ldap-users.cf:ro
-    - ./config/postfix/ldap-groups.cf:/etc/postfix/ldap-groups.cf:ro
-    - ./config/postfix/ldap-aliases.cf:/etc/postfix/ldap-aliases.cf:ro
-    - ./config/saslauthd/saslauthd.conf:/etc/saslauthd.conf:ro
-    - /etc/linuxmuster/ssl:/tmp/ssl:ro
-    - /etc/linuxmuster/ssl/cacert.pem:/etc/ssl/certs/cacert.pem:ro
+      - ./maildata/@@domainname@@/:/home/@@domainname@@/
+      - ./mailstate/:/var/mail-state/
+      - ./config/:/tmp/docker-mailserver/
+      - ./config/ldap/ldap.conf:/etc/ldap/ldap.conf:ro
+      - ./config/dovecot/dovecot-ldap.conf.ext:/etc/dovecot/dovecot-ldap.conf.ext:ro
+      - ./config/postfix/ldap-users.cf:/etc/postfix/ldap-users.cf:ro
+      - ./config/postfix/ldap-groups.cf:/etc/postfix/ldap-groups.cf:ro
+      - ./config/postfix/ldap-aliases.cf:/etc/postfix/ldap-aliases.cf:ro
+      - ./config/saslauthd/saslauthd.conf:/etc/saslauthd.conf:ro
+      - /etc/localtime:/etc/localtime:ro
+      - @@mailcert@@:/tmp/ssl/mail.cert.pem:ro
+      - @@mailkey@@:/tmp/ssl/mail.key.pem:ro
+      - /etc/linuxmuster/ssl/cacert.pem:/etc/ssl/certs/cacert.pem:ro
     environment:
-    - ENABLE_SPAMASSASSIN=0
-    - ENABLE_CLAMAV=0
-    - ENABLE_FAIL2BAN=0
-    - ENABLE_POSTGREY=0
-    - ONE_DIR=1
-    - DMS_DEBUG=0
-    - ENABLE_LDAP=1
-    - LDAP_SERVER_HOST=@@servername@@.@@domainname@@
-    - LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
-    - LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
-    - LDAP_BIND_PW=@@binduserpw@@
-    - DOVECOT_PASS_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
-    - DOVECOT_USER_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
-    - ENABLE_SASLAUTHD=1
-    - SASLAUTHD_MECHANISMS=ldap
-    - SASLAUTHD_LDAP_SERVER=@@servername@@.@@domainname@@
-    - SASLAUTHD_LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
-    - SASLAUTHD_LDAP_PASSWORD=@@binduserpw@@
-    - SASLAUTHD_LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
-    - SASLAUTHD_LDAP_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
-    - POSTMASTER_ADDRESS=postmaster@@@domainname@@
-    - SSL_TYPE=manual
-    - SSL_CERT_PATH=/tmp/ssl/mail.cert.pem
-    - SSL_KEY_PATH=/tmp/ssl/mail.key.pem
-    - AWS_SES_HOST=@@smtprelay@@
-    - AWS_SES_USERPASS=@@smtpauth@@
+      - ENABLE_SPAMASSASSIN=0
+      - ENABLE_CLAMAV=0
+      - ENABLE_FAIL2BAN=0
+      - ENABLE_POSTGREY=0
+      - ONE_DIR=1
+      - DMS_DEBUG=0
+      - ENABLE_LDAP=1
+      - LDAP_SERVER_HOST=@@servername@@.@@domainname@@
+      - LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
+      - LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
+      - LDAP_BIND_PW=@@binduserpw@@
+      - LDAP_START_TLS=yes
+      - LDAP_QUERY_FILTER_USER=(&(objectClass=person)(mail=%s))
+      - LDAP_QUERY_FILTER_GROUP=(&(objectClass=group)(mail=%s))
+      - LDAP_QUERY_FILTER_ALIAS=(&(objectClass=person)(otherMailbox=%s))
+      - LDAP_QUERY_FILTER_DOMAIN=(mail=*@%s)
+      - DOVECOT_PASS_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
+      - DOVECOT_USER_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
+      - ENABLE_SASLAUTHD=1
+      - SASLAUTHD_MECHANISMS=ldap
+      - SASLAUTHD_LDAP_SERVER=@@servername@@.@@domainname@@
+      - SASLAUTHD_LDAP_SSL=1
+      - SASLAUTHD_LDAP_BIND_DN=CN=global-binduser,OU=Management,OU=GLOBAL,@@basedn@@
+      - SASLAUTHD_LDAP_PASSWORD=@@binduserpw@@
+      - SASLAUTHD_LDAP_SEARCH_BASE=OU=SCHOOLS,@@basedn@@
+      - SASLAUTHD_LDAP_FILTER="(&(sAMAccountName=%u)(objectClass=person))"
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/tmp/ssl/mail.cert.pem
+      - SSL_KEY_PATH=/tmp/ssl/mail.key.pem
+      - RELAY_HOST=@@smtprelay@@
+      - RELAY_PORT=@@smtpport@@
+      - RELAY_USER=@@smtpuser@@
+      - RELAY_PASSWORD=@@smtppw@@
+      - POSTMASTER_ADDRESS=postmaster@@@domainname@@
     cap_add:
-    - NET_ADMIN
+      - NET_ADMIN

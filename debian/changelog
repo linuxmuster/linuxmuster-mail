@@ -1,3 +1,21 @@
+linuxmuster-mail (0.5.0-0ubuntu0) lmn7; urgency=low
+
+  * renamed linuxmuster-mail.py to linuxmuster-mail-setup.
+  * changed setup.ini path: if invoked on standalone docker appliance
+    linuxmuster-mail-setup expects all setup data inclusive binduser password in
+    /var/lib/linuxmuster/setup.ini (binduserpw), if invoked on server it fetches
+    the binduser password from /etc/linuxmuster/.secret/global-binduser.
+  * removed obsolete linuxmuster-mail systemd service.
+  * added force option to linuxmuster-mail-setup.
+  * added password option (-b, --bindpw) to linuxmuster-mail-setup to be able to
+    pass a binduser password on command line for manual container setup.
+  * changed image tag to stable.to version 3.
+  * changed docker-compose.yml
+  * added smtpport.
+  * several template updates.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 07 Mar 2020 17:12:44 +0100
+
 linuxmuster-mail (0.4.1-0ubuntu0) lmn7-testing; urgency=low
 
   * changed serverip to fqdn of server in all config templates.

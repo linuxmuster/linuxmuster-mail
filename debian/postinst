@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 20181124
+# 20200306
 # GPL v3
 #
 
@@ -22,12 +22,19 @@ set -e
 # the debian-policy package
 #
 
-SHAREDIR="/usr/share/linuxmuster-mail"
+NAME="linuxmuster-mail"
+SHAREDIR="/usr/share/$NAME"
 SYSDIR="/etc/linuxmuster"
 SSLDIR="$SYSDIR/ssl"
-DOCKERDIR="/srv/docker/linuxmuster-mail"
+DOCKERDIR="/srv/docker/$NAME"
+START="$DOCKERDIR/start.sh"
+STOP="$DOCKERDIR/stop.sh"
+YAML="$DOCKERDIR/docker-compose.yml"
+YAMLTPL="$SHAREDIR/templates/docker/docker-compose.yml"
 MAILDATA="$DOCKERDIR/maildata"
 MAILSTATE="$DOCKERDIR/mailstate"
+SERVICE="/etc/systemd/system/$NAME.service"
+
 
 case "$1" in
 
@@ -48,19 +55,47 @@ case "$1" in
   chmod 775 "$MAILSTATE"
   chmod 775 "$MAILDATA"
 
+  # remove obsolete systemd service
+  if [ -s "$SERVICE" ]; then
+    echo "Removing obsolete $NAME systemd service."
+    systemctl disable "$NAME.service"
+    mv "$SERVICE" "$SERVICE.dpkg-bak"
+  fi
+
   # manage pinned version
-  conf="/srv/docker/linuxmuster-mail/docker-compose.yml"
-  if [ -s "$conf" ]; then
-    template="/usr/share/linuxmuster-mail/templates/docker/docker-compose.yml"
-    new_version="$(grep image: "$template" | awk -F: '{ print $3 }')"
-    current_version="$(grep image: "$conf" | awk -F: '{ print $3 }')"
-    if [ "$new_version" != "$current_version" ]; then
+  if [ -s "$YAML" ]; then
+    new_version="$(grep image: "$YAMLTPL" | awk -F: '{ print $3 }')"
+    current_version="$(grep image: "$YAML" | awk -F: '{ print $3 }')"
+    if [ "$new_version" != "$current_version" -a ! -s "$YAML.bak-release" ]; then
       echo "Changing version to $new_version."
       image="tvial/docker-mailserver:$new_version"
-      cp "$conf" "$conf.bak"
-      sed -e "s|image: .*|image: $image|" "$conf.bak" > "$conf"
-      systemctl restart linuxmuster-mail.service
+      cp "$YAML" "$YAML.bak-release"
+      sed -e "s|image: .*|image: $image|" "$YAML.bak-release" > "$YAML"
+      restart="yes"
     fi
+    # check restart policy
+    if ! grep -v ^# "$YAML" | grep -q 'restart:'; then
+      echo "Adding restart policy to $YAML."
+      cp "$YAML" "$YAML.bak-restart"
+      sed -e 's|mail:|mail:\n    restart: always|' "$YAML.bak-restart" > "$YAML"
+      restart="yes"
+    fi
+    # check compose file version
+    cd "$DOCKERDIR"
+    version="$(docker-compose config | grep ^version | awk -F\' '{ print $2 }' | awk -F\. '{ print $1 }')"
+    if [ "$version" = "2" ]; then
+      echo "Changing compose file version to 3."
+      cp "$YAML" "$YAML.bak-version"
+      sed -e "s|^version: .*|version: \'3\'|" "$YAML.bak-version" > "$YAML"
+      restart="yes"
+    fi
+  fi
+
+  # restart container if necessary
+  if [ -n "$restart" ]; then
+    echo "Restarting container."
+    "$STOP"
+    "$START"
   fi
  ;;
 

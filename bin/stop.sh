@@ -1,5 +1,4 @@
 #!/bin/sh
 
-RC=0
-/usr/bin/docker stop mail || RC=1
-exit $RC
+cd /srv/docker/linuxmuster-mail
+/usr/bin/docker-compose down
