@@ -121,7 +121,8 @@ def mailSetup():
         smtprelay_full = setup.get('setup', 'smtprelay')
         smtpuser = setup.get('setup', 'smtpuser')
         smtppw = setup.get('setup', 'smtppw')
-    except:
+    except Exception as e:
+        print(e)
         return 1
 
     # use binduser password given on cl
@@ -155,6 +156,7 @@ def mailSetup():
     os.system('chown docker:docker ' + maildata)
     rc = os.system('chmod 770 ' + maildata)
     if rc != 0:
+        print('Can not change rights for', maildata, '!')
         return 1
 
     # create docker configuration
