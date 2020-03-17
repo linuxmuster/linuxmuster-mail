@@ -2,7 +2,7 @@
 #
 # linuxmuster-mail.py
 # thomas@linuxmuster.net
-# 20200306
+# 20200317
 #
 
 import configparser
