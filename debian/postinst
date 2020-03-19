@@ -2,7 +2,7 @@
 #
 # postinst script for linuxmuster-base
 # thomas@linuxmuster.net
-# 20200306
+# 20200319
 # GPL v3
 #
 
@@ -34,6 +34,8 @@ YAMLTPL="$SHAREDIR/templates/docker/docker-compose.yml"
 MAILDATA="$DOCKERDIR/maildata"
 MAILSTATE="$DOCKERDIR/mailstate"
 SERVICE="/etc/systemd/system/$NAME.service"
+RELEASE_OLD="release-v6.1.0"
+RELEASE="stable"
 
 
 case "$1" in
@@ -64,11 +66,10 @@ case "$1" in
 
   # manage pinned version
   if [ -s "$YAML" ]; then
-    new_version="$(grep image: "$YAMLTPL" | awk -F: '{ print $3 }')"
-    current_version="$(grep image: "$YAML" | awk -F: '{ print $3 }')"
-    if [ "$new_version" != "$current_version" -a ! -s "$YAML.bak-release" ]; then
-      echo "Changing version to $new_version."
-      image="tvial/docker-mailserver:$new_version"
+    current_release="$(grep image: "$YAML" | awk -F: '{ print $3 }')"
+    if [ "$current_release" = "$RELEASE_OLD" -a ! -s "$YAML.bak-release" ]; then
+      echo "Changing image version to $RELEASE."
+      image="tvial/docker-mailserver:$RELEASE"
       cp "$YAML" "$YAML.bak-release"
       sed -e "s|image: .*|image: $image|" "$YAML.bak-release" > "$YAML"
       restart="yes"
@@ -91,12 +92,8 @@ case "$1" in
     fi
   fi
 
-  # restart container if necessary
-  if [ -n "$restart" ]; then
-    echo "Restarting container."
-    "$STOP"
-    "$START"
-  fi
+  # restart message
+  [ -n "$restart" ] && echo "Please restart the mail container to make the changes effective."
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)

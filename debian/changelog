@@ -1,3 +1,11 @@
+linuxmuster-mail (0.5.1-1ubuntu0) lmn7; urgency=low
+
+  * postinst:
+    - improved release handling.
+    - do not restart the mail container automatically.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Mar 2020 09:46:01 +0100
+
 linuxmuster-mail (0.5.1-0ubuntu0) lmn7; urgency=low
 
   * removed docker from package depends, added docker.io to pre-depends.
