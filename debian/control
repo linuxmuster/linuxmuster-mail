@@ -7,7 +7,7 @@ Standards-Version: 5.0.0
 
 Package: linuxmuster-mail
 Architecture: all
-Pre-Depends: docker.io
-Depends: python3, python3-ipy, python3-netifaces, docker-compose
+Pre-Depends: docker-compose
+Depends: python3, python3-ipy, python3-netifaces 
 Description: linuxmuster.net docker mailserver configuration scripts
  This package provides configuration scripts for linuxmuster.net docker mailserver

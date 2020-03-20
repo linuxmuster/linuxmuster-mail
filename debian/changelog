@@ -1,3 +1,9 @@
+linuxmuster-mail (0.5.1-2ubuntu0) lmn7; urgency=low
+
+  * added docker-compose to pre-depends, removed docker.io from pre-depends.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 20 Mar 2020 10:26:49 +0100
+
 linuxmuster-mail (0.5.1-1ubuntu0) lmn7; urgency=low
 
   * postinst:
